@@ -35,11 +35,13 @@ implementation
 
 class procedure TMaterialEdit.Init(var aLayout: TLayout; var aEdit: TEdit; var aLabel: TLabel);
 begin
-  aEdit.Size.PlatformDefault := true;
   aEdit.Align := TAlignLayout.Bottom;
+  aEdit.Size.PlatformDefault := true;
 
+  aLabel.Align := TAlignLayout.None;
   aLabel.AutoSize := true;
   aLabel.HitTest := false;
+  aLabel.BringToFront;
 
   aLayout.HitTest := false;
 
@@ -56,25 +58,29 @@ end;
 
 class procedure TMaterialEdit.OnEnter(var aEdit: TEdit; var aLabel: TLabel);
 begin
-  if SameValue(aLabel.Position.Y, aEdit.Position.Y + TMaterialEdit.FLabelPosYmargin) then
-    TAnimator.AnimateFloatWait(aLabel, 'Position.Y', aLabel.Position.Y - aEdit.Height, 0.08);
+  TAnimator.AnimateFloatWait(aLabel, 'Position.Y', aEdit.Position.Y - aLabel.Height, 0.08);
 end;
 
 class procedure TMaterialEdit.OnExit(var aEdit: TEdit; var aLabel: TLabel);
+var
+  aAnimate: Boolean;
 begin
-  if (aEdit.Text.Trim.IsEmpty) and (not SameValue(aLabel.Position.Y, aEdit.Position.Y + TMaterialEdit.FLabelPosYmargin))
-  then
+  aLabel.BringToFront;
+  aAnimate := (aEdit.Text.Trim.IsEmpty) and
+    (not SameValue(aLabel.Position.Y, aEdit.Position.Y + TMaterialEdit.FLabelPosYmargin, 0.1));
+  if aAnimate then
     TAnimator.AnimateFloatWait(aLabel, 'Position.Y', aEdit.Position.Y + TMaterialEdit.FLabelPosYmargin, 0.08);
 end;
 
 class procedure TMaterialEdit.Resize(var aLayout: TLayout; var aEdit: TEdit; var aLabel: TLabel);
 begin
+  TMaterialEdit.FLabelPosYmargin := (aEdit.Height / 2) - (aLabel.Height / 2);
   aLayout.Height := aEdit.Height + aLabel.Height;
   aLabel.Width := aEdit.Width;
 
   aLabel.Position.X := TMaterialEdit.FLabelPosXmargin + aEdit.Position.X;
   if not aEdit.Text.IsEmpty then
-    aLabel.Position.Y := aEdit.Position.Y - aEdit.Height + TMaterialEdit.FLabelPosYmargin
+    aLabel.Position.Y := aEdit.Position.Y - aLabel.Height
   else
   begin
     aLabel.Position.X := TMaterialEdit.FLabelPosXmargin + aEdit.Position.X;
